@@ -1,0 +1,91 @@
+version: '3.8'
+
+services:
+  mail:
+    image: stalwartlabs/mail-server:latest
+    container_name: stalwart-mail
+    restart: unless-stopped
+    ports:
+      # Interfaz de administración web
+      - "8080:8080"
+      
+      # Protocolos SMTP
+      - "25:25"       # SMTP (comunicación entre servidores)
+      - "587:587"     # SMTP Submission (envío de correo con autenticación)
+      - "465:465"     # SMTPS (SMTP sobre SSL/TLS)
+      
+      # Protocolos IMAP
+      - "143:143"     # IMAP
+      - "993:993"     # IMAPS (IMAP sobre SSL/TLS)
+      
+      # Protocolos POP3 (opcionales)
+      - "110:110"     # POP3
+      - "995:995"     # POP3S (POP3 sobre SSL/TLS)
+    
+    volumes:
+      # Volumen para los datos persistentes (correos, cuentas, etc.)
+      - stalwart_data:/opt/stalwart/data
+      
+      # Volumen para archivos de configuración
+      - stalwart_config:/opt/stalwart/etc
+      
+      # Si necesitas modificar la configuración manualmente,
+      # puedes montar un archivo local (descomenta estas líneas)
+      # - ./config.yml:/opt/stalwart/etc/config.yml:ro
+      # - ./jmap.yml:/opt/stalwart/etc/jmap.yml:ro
+      
+      # Volumen para certificados SSL personalizados (si los tienes)
+      # - ./ssl:/opt/stalwart/ssl:ro
+    
+    # environment:
+    #   # Variables de entorno para configuración básica
+    #   - DOMAIN=plataformaeducativauma.com
+    #   - HOSTNAME=mail.plataformaeducativauma.com
+      
+    #   # Variables para creación de cuenta inicial de administrador
+    #   - ADMIN_PASSWORD=SecureAdminPassword123  # Cambia esto a una contraseña segura
+      
+    #   # Configuraciones de base de datos (si usas una externa)
+    #   # - DB_HOST=db
+    #   # - DB_USER=stalwart
+    #   # - DB_PASSWORD=stalwartpassword
+      
+    #   # Ajustes de límites y rendimiento
+    #   - MAX_MESSAGE_SIZE=50M
+    #   - SMTP_WORKERS=2
+    #   - IMAP_WORKERS=2
+      
+    #   # Ajustes para TLS/SSL
+    #   - TLS_ENABLE=true
+    #   # - TLS_CERT=/opt/stalwart/ssl/cert.pem
+    #   # - TLS_KEY=/opt/stalwart/ssl/key.pem
+      
+    #   # Configuración anti-spam (opcional)
+    #   - SPAM_THRESHOLD=5.0
+    #   - VIRUS_SCAN=true
+    
+    networks:
+      - mail_network
+
+volumes:
+  stalwart_data:
+    name: stalwart_data
+    # Usa un driver externo si quieres que los datos persistan
+    # incluso si eliminas el stack completo
+    driver: local
+    driver_opts:
+      type: none
+      device: /ruta/en/tu/host/stalwart_data  # Actualiza esto a una ruta real en tu sistema
+      o: bind
+  
+  stalwart_config:
+    name: stalwart_config
+    driver: local
+    driver_opts:
+      type: none
+      device: /ruta/en/tu/host/stalwart_config  # Actualiza esto a una ruta real en tu sistema
+      o: bind
+
+networks:
+  mail_network:
+    driver: bridge
